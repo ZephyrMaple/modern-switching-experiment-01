@@ -7,4 +7,14 @@ def serve_circuit(queues, tick, cfg):
     空队列返回(0,[])；记录完全发完才pop并记入完成列表。
     提示：先确定用户，再在该用户队列上按FIFO扣减remaining_wire_bits。
     """
-    raise NotImplementedError('TODO: implement fixed-slot circuit service')
+    q = queues[tick % cfg.users]
+    sent = 0
+    done = []
+    while q and sent < cfg.slot_bits:
+        head = q[0]
+        give = min(head.remaining_wire_bits, cfg.slot_bits - sent)
+        head.remaining_wire_bits -= give
+        sent += give
+        if head.remaining_wire_bits == 0:
+            done.append(q.popleft())
+    return sent, done
